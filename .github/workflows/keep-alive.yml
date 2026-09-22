@@ -2,26 +2,35 @@ name: Keep Render Backend Alive
 
 on:
   schedule:
-    # Runs every 14 minutes — keeps the Render free-tier service from spinning down
+    # Best effort only: GitHub delays scheduled runs under load, so gaps can
+    # far exceed 14 minutes and the service may already be asleep.
     - cron: "*/14 * * * *"
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   ping:
     name: Ping Argus Backend
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
 
     steps:
       - name: Ping /health
         run: |
-          echo "Pinging Argus backend at $(date -u)"
-          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 30 https://argus-okop.onrender.com/health)
-          echo "HTTP status: $STATUS"
-          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
-            echo "✅ Backend is alive (HTTP $STATUS)"
-          else
-            echo "⚠️ Unexpected status code: $STATUS — backend may be starting up or degraded"
-            # Don't fail the job — a cold start returns non-200 briefly, that's expected
-            exit 0
-          fi
+          URL="https://argus-okop.onrender.com/health"
+          # A cold Render free instance takes about a minute to spin up,
+          # so give each attempt 90s and retry before giving up.
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt at $(date -u)"
+            # `|| true` stops bash -e from aborting the step when curl
+            # times out (exit 28); curl still prints 000 as the status.
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 90 "$URL") || true
+            STATUS=${STATUS:-000}
+            echo "HTTP status: $STATUS"
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+              echo "✅ Backend is alive (HTTP $STATUS)"
+              exit 0
+            fi
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
+          # Don't fail the job: surface it as a warning instead.
+          echo "::warning title=Argus backend unreachable::No 2xx/3xx from $URL after 3 attempts"
