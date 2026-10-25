@@ -82,9 +82,9 @@ docker pull ghcr.io/kr1shnasomani/argus:latest
 docker run --rm \
   --env-file .env \
   -e SERVICE=all \
-  -p 8005:8005 \
-  -p 8001:8001 \
-  -p 5173:5173 \
+  -p 127.0.0.1:8005:8005 \
+  -p 127.0.0.1:8001:8001 \
+  -p 127.0.0.1:5173:5173 \
   ghcr.io/kr1shnasomani/argus:latest
 ```
 
@@ -94,59 +94,20 @@ You can target a specific tier by setting the `SERVICE` environment variable:
 
 ```bash
 # Backend only
-docker run --env-file .env -e SERVICE=backend -p 8005:8005 ghcr.io/kr1shnasomani/argus:latest
+docker run --env-file .env -e SERVICE=backend -p 127.0.0.1:8005:8005 ghcr.io/kr1shnasomani/argus:latest
 
 # Sandbox only
-docker run --env-file .env -e SERVICE=sandbox -p 8001:8001 ghcr.io/kr1shnasomani/argus:latest
+docker run --env-file .env -e SERVICE=sandbox -p 127.0.0.1:8001:8001 ghcr.io/kr1shnasomani/argus:latest
 
 # Frontend only
-docker run --env-file .env -e SERVICE=frontend -p 5173:5173 ghcr.io/kr1shnasomani/argus:latest
+docker run --env-file .env -e SERVICE=frontend -p 127.0.0.1:5173:5173 ghcr.io/kr1shnasomani/argus:latest
 ```
 
 ---
 
-## 🛠️ Manual Setup (Alternative Fallback)
+## 🛠️ No Host Installs (Docker-only)
 
-Use this if you prefer running services directly on your host for debugging.
-
-### 1. Database & Infrastructure
-
-Ensure your `.env` (in the project root) contains valid credentials for:
-- **Supabase** — PostgreSQL connection + service role key
-- **Qdrant Cloud** — cluster URL + API key
-
-Initialise the Supabase schema using `database/schema.sql`.
-
-### 2. Sandbox (Port 8001)
-
-```bash
-cd sandbox
-python3.11 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-```
-
-### 3. Backend (Port 8005)
-
-```bash
-cd backend
-python3.11 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-# Ensure SANDBOX_URL=http://localhost:8001 is set in your .env
-uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
-```
-
-### 4. Frontend (Port 5173)
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Access the UI at [http://localhost:5173](http://localhost:5173).
+Do not run services directly on your host. There is no host `venv`, `pip install`, `npm install` or `uvicorn`: every service runs through `docker compose`, so vulnerable or malicious packages stay inside containers. To debug, use `docker compose logs -f <service>` or `docker compose exec <service> sh`.
 
 ---
 

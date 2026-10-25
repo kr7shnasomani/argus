@@ -9,7 +9,7 @@ services:
       args:
         VITE_API_URL: http://localhost:8005/api
     ports:
-      - "8005:8005"
+      - "127.0.0.1:8005:8005"
     environment:
       - SERVICE=backend
       - SANDBOX_URL=http://argus-sandbox:8001
@@ -29,7 +29,7 @@ services:
       args:
         VITE_API_URL: http://localhost:8005/api
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     environment:
       - SERVICE=sandbox
     env_file:
@@ -46,7 +46,7 @@ services:
       args:
         VITE_API_URL: http://localhost:8005/api
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     environment:
       - SERVICE=frontend
     env_file:

@@ -3,11 +3,11 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies: Node 20 LTS, supervisor, curl
+# Install system dependencies: Node 22 LTS, supervisor, curl
 RUN apt-get update && apt-get install -y \
     curl \
     supervisor \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 

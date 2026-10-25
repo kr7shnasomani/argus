@@ -66,6 +66,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 - **Preserve pipeline layer order.** The 9-stage pipeline (Severity Auto-Detection → Category Auto-Detection → Policy Gate → Embedding → Retrieval → Novelty → Confidence (A/B/C) → Sandbox → Finalization) must always execute in sequence.
 - **Respect escalation safety.** If any component fails or is unavailable (Qdrant down, sandbox unreachable, LLM timeout), the system **must default to escalation**. Never auto-resolve when uncertain.
 - **Audit trail.** Every decision must produce a SHA-256 hash chained to the previous entry in `audit_log`.
+- **Docker-only.** Never install or run project dependencies on the host (no host `npm install`/`npm ci`/`npm run`, `pip install`, `venv`, `uvicorn` or `pytest`). Everything runs through `docker compose`, so vulnerable or malicious packages stay inside containers. Do not recreate `backend/venv/`, `sandbox/venv/`, `frontend/node_modules/` or `frontend/dist/` on the host.
 
 ---
 
